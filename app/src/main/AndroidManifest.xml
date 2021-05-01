@@ -22,6 +22,14 @@
     <!-- VERY IMPORTANT! Don't forget this permission, or in-app billing won't work. -->
     <uses-permission android:name="ir.mservices.market.BILLING" />
 
+    <queries>
+        <package android:name="ir.mservices.market" />
+        <intent>
+            <action android:name="ir.mservices.market.InAppBillingService.BIND" />
+            <data android:mimeType="*/*" />
+        </intent>
+    </queries>
+
     <application
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
