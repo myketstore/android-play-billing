@@ -43,5 +43,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <receiver android:name=".util.IABReceiver">
+            <intent-filter>
+                <action android:name="ir.mservices.market.ping" />
+                <action android:name="ir.mservices.market.purchase" />
+                <action android:name="ir.mservices.market.getPurchase" />
+                <action android:name="ir.mservices.market.billingSupport" />
+                <action android:name="ir.mservices.market.skuDetail" />
+                <action android:name="ir.mservices.market.consume" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
