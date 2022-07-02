@@ -18,7 +18,7 @@ import android.os.Bundle;
 import android.os.RemoteException;
 
 import com.example.android.trivialdrivesample.util.communication.BillingSupportCommunication;
-import com.example.android.trivialdrivesample.util.communication.OnConnectListener;
+import com.example.android.trivialdrivesample.util.communication.OnBroadCastConnectListener;
 
 import org.json.JSONException;
 
@@ -88,8 +88,6 @@ public abstract class IAB {
         mSetupDone = false;
         mDisposed = true;
     }
-
-    abstract boolean connect(Context context, OnConnectListener listener);
 
     abstract void isBillingSupported(
             int apiVersion,

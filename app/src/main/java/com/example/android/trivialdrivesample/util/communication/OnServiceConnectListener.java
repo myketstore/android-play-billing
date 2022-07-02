@@ -1,5 +1,7 @@
 package com.example.android.trivialdrivesample.util.communication;
 
-public interface OnConnectListener {
+public interface OnServiceConnectListener {
     void connected();
+
+    void couldNotConnect();
 }

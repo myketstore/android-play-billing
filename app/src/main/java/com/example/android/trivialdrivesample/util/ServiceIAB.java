@@ -25,7 +25,7 @@ import android.os.RemoteException;
 
 import com.android.vending.billing.IInAppBillingService;
 import com.example.android.trivialdrivesample.util.communication.BillingSupportCommunication;
-import com.example.android.trivialdrivesample.util.communication.OnConnectListener;
+import com.example.android.trivialdrivesample.util.communication.OnServiceConnectListener;
 
 import java.util.List;
 
@@ -50,20 +50,19 @@ public class ServiceIAB extends IAB {
         super(logger);
     }
 
-    @Override
-    public boolean connect(Context context, final OnConnectListener listener) {
+    public void connect(Context context, final OnServiceConnectListener listener) {
 
         // Connection to IAB service
         logger.logDebug("Starting in-app billing setup.");
         mServiceConn = new ServiceConnection() {
             @Override
-            public void onServiceDisconnected(ComponentName name) {
+            public void onServiceDisconnected(final ComponentName name) {
                 logger.logDebug("Billing service disconnected.");
                 mService = null;
             }
 
             @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
+            public void onServiceConnected(final ComponentName name, final IBinder service) {
                 logger.logDebug("Billing service connected.");
                 if (disposed()) {
                     return;
@@ -71,7 +70,6 @@ public class ServiceIAB extends IAB {
                 mSetupDone = true;
                 mService = IInAppBillingService.Stub.asInterface(service);
                 listener.connected();
-
             }
         };
 
@@ -82,14 +80,17 @@ public class ServiceIAB extends IAB {
         List<ResolveInfo> intentServices = pm.queryIntentServices(serviceIntent, 0);
         if (intentServices != null && !intentServices.isEmpty()) {
             try {
-                return context.bindService(serviceIntent, mServiceConn, Context.BIND_AUTO_CREATE);
+                boolean result = context.bindService(serviceIntent, mServiceConn, Context.BIND_AUTO_CREATE);
+                if (!result) {
+                    listener.couldNotConnect();
+                }
             } catch (Exception e) {
-                logger.logDebug("Billing service can't connect. result = " + false);
-                return false;
+                logger.logDebug("Billing service can't connect. result = false");
+                listener.couldNotConnect();
             }
         } else {
-            logger.logDebug("Billing service can't connect. result = " + false);
-            return false;
+            logger.logDebug("Billing service can't connect. result = false");
+            listener.couldNotConnect();
         }
     }
 

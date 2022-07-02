@@ -24,7 +24,8 @@ import android.os.RemoteException;
 import android.text.TextUtils;
 
 import com.example.android.trivialdrivesample.util.communication.BillingSupportCommunication;
-import com.example.android.trivialdrivesample.util.communication.OnConnectListener;
+import com.example.android.trivialdrivesample.util.communication.OnBroadCastConnectListener;
+import com.example.android.trivialdrivesample.util.communication.OnServiceConnectListener;
 
 import org.json.JSONException;
 
@@ -178,34 +179,45 @@ public class IabHelper {
 
         // If already set up, can't do it again.
         checkNotDisposed();
-        if (iabConnection != null) throw new IllegalStateException("IAB helper is already set up.");
-
+        if (iabConnection != null) {
+            throw new IllegalStateException("IAB helper is already set up.");
+        }
         logger.logDebug("Starting in-app billing setup.");
 
-        OnConnectListener connectListener = new OnConnectListener() {
+        ServiceIAB serviceIAB = new ServiceIAB(logger);
+
+        OnServiceConnectListener connectListener = new OnServiceConnectListener() {
+            @Override
+            public void connected() {
+                checkBillingSupported(listener);
+            }
+
+            @Override
+            public void couldNotConnect() {
+                startAlternativeScenario(listener);
+            }
+        };
+
+        iabConnection = serviceIAB;
+        serviceIAB.connect(mContext, connectListener);
+    }
+
+    private void startAlternativeScenario(final OnIabSetupFinishedListener listener) {
+        OnBroadCastConnectListener broadCastConnectListener = new OnBroadCastConnectListener() {
             @Override
             public void connected() {
                 checkBillingSupported(listener);
             }
         };
 
-        IAB serviceIAB = new ServiceIAB(logger);
-        boolean canConnectToService = serviceIAB.connect(mContext, connectListener);
-
-        if (canConnectToService) {
-            logger.logDebug("canConnectToService = " + canConnectToService);
-            iabConnection = serviceIAB;
+        BroadcastIAB broadcastIAB = new BroadcastIAB(mContext, logger, mSignatureBase64);
+        boolean canConnectToReceiver = broadcastIAB.connect(mContext, broadCastConnectListener);
+        logger.logDebug("canConnectToReceiver = " + canConnectToReceiver);
+        if (canConnectToReceiver) {
+            iabConnection = broadcastIAB;
         } else {
-            IAB broadcastIAB = new BroadcastIAB(mContext, logger, mSignatureBase64);
-            boolean canConnectToReceiver = broadcastIAB.connect(mContext, connectListener);
-            logger.logDebug("canConnectToReceiver = " + canConnectToReceiver);
-            if (canConnectToReceiver) {
-                iabConnection = broadcastIAB;
-            }
-        }
-
-        if (iabConnection == null && listener != null) {
-            IabResult iabResult = new IabResult(BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE, "Billing service unavailable on device.");
+            iabConnection = null;
+            final IabResult iabResult = new IabResult(BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE, "Billing service unavailable on device.");
             listener.onIabSetupFinished(iabResult);
         }
     }

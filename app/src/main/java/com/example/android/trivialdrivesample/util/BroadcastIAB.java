@@ -16,7 +16,7 @@ import android.os.RemoteException;
 import android.support.annotation.NonNull;
 
 import com.example.android.trivialdrivesample.util.communication.BillingSupportCommunication;
-import com.example.android.trivialdrivesample.util.communication.OnConnectListener;
+import com.example.android.trivialdrivesample.util.communication.OnBroadCastConnectListener;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.TimeUnit;
@@ -66,7 +66,7 @@ public class BroadcastIAB extends IAB {
     private Bundle getPurchaseBundle;
 
     private IABReceiverCommunicator iabReceiver = null;
-    private WeakReference<OnConnectListener> connectListenerWeakReference;
+    private WeakReference<OnBroadCastConnectListener> connectListenerWeakReference;
     private WeakReference<BillingSupportCommunication> billingSupportWeakReference;
     private WeakReference<Activity> launchPurchaseActivityWeakReference;
 
@@ -76,8 +76,7 @@ public class BroadcastIAB extends IAB {
         this.signatureBase64 = mSignatureBase64 != null ? mSignatureBase64 : "secureBroadcastKey";
     }
 
-    @Override
-    boolean connect(Context context, OnConnectListener listener) {
+    boolean connect(Context context, OnBroadCastConnectListener listener) {
         try {
             PackageInfo pInfo = context.getPackageManager().getPackageInfo(MYKET_PACKAGE_NAME, 0);
 
@@ -125,7 +124,7 @@ public class BroadcastIAB extends IAB {
 
                 switch (action) {
                     case receivePingAction:
-                        OnConnectListener listener = safeGetFromWeakReference(connectListenerWeakReference);
+                        OnBroadCastConnectListener listener = safeGetFromWeakReference(connectListenerWeakReference);
                         mSetupDone = true;
                         if (listener != null) {
                             listener.connected();
